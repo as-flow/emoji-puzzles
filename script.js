@@ -1,38 +1,52 @@
 /* script.js */
 const gridSize = 7; // 7x7 grid
 let playerPosition = { x: 0, y: 0 }; // Starting position
+let level = [];
 let history = []; // To store move history for undo
 const gameGrid = document.getElementById("game-grid");
 const status = document.getElementById("status");
 
-// Original level layout (used for restarting)
-const originalLevel = [
-  ["", "", "", "", "", "", ""],
-  ["", "🌲", "", "", "🔥", "", ""],
-  ["", "", "🦊", "", "", "", ""],
-  ["", "", "", "🌲", "", "", ""],
-  ["", "", "", "", "", "🦊", ""],
-  ["", "🌲", "", "", "", "", ""],
-  ["", "", "", "", "", "", "🏁"]
-];
+// Fetch and load level from YAML file
+async function loadLevel() {
+  try {
+    const response = await fetch("levels/1.yaml");
+    const yamlText = await response.text();
+    const parsedLevel = jsyaml.load(yamlText);
+    level = parsedLevel.layout;
 
-// Clone the original level to allow for resetting
-let level = JSON.parse(JSON.stringify(originalLevel));
+    renderGrid(); // Render the loaded level
+  } catch (error) {
+    status.textContent = "Failed to load level!";
+    console.error("Error loading level:", error);
+  }
+}
 
 // Render the grid
 function renderGrid() {
   gameGrid.innerHTML = ""; // Clear the grid
   gameGrid.style.gridTemplateColumns = `repeat(${gridSize}, 50px)`; // Adjust grid size dynamically
   level.forEach((row, rowIndex) => {
-    row.forEach((cell, colIndex) => {
+    [...row].forEach((cell, colIndex) => {
       const cellDiv = document.createElement("div");
       cellDiv.textContent = cell;
       if (playerPosition.x === colIndex && playerPosition.y === rowIndex) {
-        cellDiv.textContent = "🏃"; // Player emoji
+        cellDiv.textContent = "🐢"; // Player emoji
+      } else if (cell == "⬜") {
+        cellDiv.textContent = "";
       }
       gameGrid.appendChild(cellDiv);
     });
   });
+}
+
+function getCell(x, y) {
+  return level[y].match(/\p{Emoji}/gu)[x];
+}
+
+function setCell(x, y, value) {
+  let array = [...level[y]];
+  array[x] = value;
+  level[y] = array.join('');
 }
 
 // Move the player
@@ -47,10 +61,17 @@ function movePlayer(dx, dy) {
   }
 
   // Obstacle check
-  const targetCell = level[newY][newX];
-  if (targetCell === "🌲" || targetCell === "🦊") {
-    status.textContent = "Blocked!";
-    return;
+  const targetCell = getCell(newX, newY);
+  if (targetCell === "🪨") {
+    const newPushX = newX + dx;
+    const newPushY = newY + dy;
+    if (newPushX < 0 || newPushX >= gridSize || newPushY < 0 || newPushY >= gridSize || getCell(newPushX, newPushY) !== "⬜") {
+      status.textContent = "Blocked!";
+      return;
+    } else {
+      setCell(newPushX, newPushY, "🪨");
+      setCell(newX, newY, "⬜");
+    }
   }
 
   // Save current position to history for undo
@@ -61,8 +82,11 @@ function movePlayer(dx, dy) {
   status.textContent = "";
 
   // Check for win condition
-  if (targetCell === "🏁") {
+  if (targetCell === "🪸") {
     status.textContent = "You win! 🎉 Select another level below.";
+    disableControls();
+  } else if (targetCell === "🦈") {
+    status.textContent = "You lose!";
     disableControls();
   }
 
@@ -84,10 +108,9 @@ function undoMove() {
 function restartGame() {
   playerPosition = { x: 0, y: 0 }; // Reset player position
   history = []; // Clear move history
-  level = JSON.parse(JSON.stringify(originalLevel)); // Reset level layout
+  loadLevel(); // Reload the level
   status.textContent = "Game restarted!";
   enableControls();
-  renderGrid();
 }
 
 // Disable controls after win
@@ -118,5 +141,30 @@ document.getElementById("wait").addEventListener("click", wait);
 document.getElementById("undo").addEventListener("click", undoMove);
 document.getElementById("restart").addEventListener("click", restartGame);
 
+document.addEventListener("keydown", (event) => {
+  switch (event.key) {
+    case "ArrowUp":
+    case "w":
+    case "W":
+      movePlayer(0, -1); // Move up
+      break;
+    case "ArrowDown":
+    case "s":
+    case "S":
+      movePlayer(0, 1); // Move down
+      break;
+    case "ArrowLeft":
+    case "a":
+    case "A":
+      movePlayer(-1, 0); // Move left
+      break;
+    case "ArrowRight":
+    case "d":
+    case "D":
+      movePlayer(1, 0); // Move right
+      break;
+  }
+});
+
 // Initial render
-renderGrid();
+loadLevel();
