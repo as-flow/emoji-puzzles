@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emoji Puzzle Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="game-container">
+    <h2>Emoji Puzzle Game</h2>
+    <div id="game-grid" class="grid"></div>
+    <div class="controls">
+      <div class="left-controls">
+        <button id="undo">🔙</button>
+        <button id="restart">🔄</button>
+      </div>
+      <div>
+        <button id="move-up">⬆️</button>
+        <div>
+          <button id="move-left">⬅️</button>
+          <button id="wait">🔵</button>
+          <button id="move-right">➡️</button>
+        </div>
+        <button id="move-down">⬇️</button>
+      </div>
+    </div>
+    <div id="status"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
