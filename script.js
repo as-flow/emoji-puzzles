@@ -6,18 +6,46 @@ let history = []; // To store move history for undo
 const gameGrid = document.getElementById("game-grid");
 const status = document.getElementById("status");
 
-// Fetch and load level from YAML file
-async function loadLevel() {
+const levelButtonsContainer = document.getElementById("level-buttons");
+let currentLevel = 1;
+
+// Generate level buttons (1 to 20)
+function createLevelButtons() {
+  for (let i = 1; i <= 20; i++) {
+    const button = document.createElement("button");
+    button.textContent = i;
+    button.addEventListener("click", () => loadLevel(i));
+    if (i === currentLevel) button.classList.add("active");
+    levelButtonsContainer.appendChild(button);
+  }
+}
+
+// Highlight the active level button
+function updateActiveLevelButton() {
+  const buttons = levelButtonsContainer.querySelectorAll("button");
+  buttons.forEach((btn, index) => {
+    if (index + 1 === currentLevel) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+}
+
+// Load a specific level
+async function loadLevel(levelNumber) {
+  currentLevel = levelNumber;
+  updateActiveLevelButton();
+
   try {
-    const response = await fetch("levels/1.yaml");
+    const response = await fetch(`levels/${levelNumber}.yaml`);
     const yamlText = await response.text();
     const parsedLevel = jsyaml.load(yamlText);
     level = parsedLevel.layout;
-
     renderGrid(); // Render the loaded level
   } catch (error) {
-    status.textContent = "Failed to load level!";
-    console.error("Error loading level:", error);
+    status.textContent = `Failed to load level ${levelNumber}!`;
+    console.error(`Error loading level ${levelNumber}:`, error);
   }
 }
 
@@ -167,4 +195,5 @@ document.addEventListener("keydown", (event) => {
 });
 
 // Initial render
-loadLevel();
+createLevelButtons();
+loadLevel(currentLevel);

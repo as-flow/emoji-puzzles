@@ -57,3 +57,31 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Level Buttons */
+.level-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.level-buttons button {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+
+.level-buttons button:hover {
+  background-color: #e0e0e0;
+}
+
+.level-buttons button.active {
+  background-color: #4caf50;
+  color: white;
+}
